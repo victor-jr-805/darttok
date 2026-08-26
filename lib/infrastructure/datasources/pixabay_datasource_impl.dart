@@ -35,7 +35,9 @@ class PixabayDatasourceImpl implements VideoPostsDatasource {
 
       // JSON crudo >>> Modelo >>> Entidad. en un solo recorrido.
       return hits
-          .map((json) => PixabayVideoModel.fromJson(json).toVideoPostEntity())
+          .map((json) => PixabayVideoModel.tryFromJson(json))
+          .whereType<PixabayVideoModel>()
+          .map((model) => model.toVideoPostEntity())
           .toList();
     } on DioException catch (e) {
       // Convertimos el error especifico de Dio en nuestra excepcion de

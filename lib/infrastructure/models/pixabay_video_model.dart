@@ -2,34 +2,71 @@
 
 // MODELO
 // Representa la forma en la que Pixabay entrega un video.
-// Por ahora asumimos que el JSON Viene bien formado.
-// En el modulo 5 lo hacemos mas defensivo.
+// A diferencia del primer intento, aquí asumimos que cualquier campo
+// puede venir nulo, vacío o con un tipo inesperado.
 import 'package:darttok/domain/entities/video_post.dart';
 
 class PixabayVideoModel {
   final int id;
   final String name;
-  final String mediumVideoUrl;
+  final String videoUrl;
   final int likes;
   final int views;
 
   PixabayVideoModel({
     required this.id,
     required this.name,
-    required this.mediumVideoUrl,
+    required this.videoUrl,
     required this.likes,
     required this.views,
   });
 
   // Constructor nombrado: arma el modelo desde un elemento de "hits".
-  factory PixabayVideoModel.fromJson(Map<String, dynamic> json) {
+  // Devuelve null si falta algo indispensable (id o una URL de video
+  // usable) en vez de lanzar una excepcion: preferimos saltarnos
+  // UN video defectuoso a tumbar la pagina completa de 20.
+  static PixabayVideoModel? tryFromJson(Map<String, dynamic> json) {
+    // "id" es indispensable: sin el no podemos evitar duplicados al
+    // paginar (modulo 11). Si falta, descartamos el video.
+    final id = json['id'];
+    if (id is! int) {
+      return null;
+    }
+
+    // Buscamos una URL de video utilizable, con un orden de preferencia.
+    // Si "medium" no viene o viene vacio, provamos con las otras calidades
+    // antes de rendirnos.
+    final videoUrl = _pickBestVideoUrl(json['videos']);
+    if (videoUrl == null) {
+      return null;
+    }
     return PixabayVideoModel(
-      id: json['id'],
-      name: json['name'],
-      mediumVideoUrl: json['videos']['medium']['url'],
-      likes: json['likes'],
-      views: json['views'],
+      id: id,
+      // "name " es solo texto de presentacion: si falta, no descartamos
+      // el video entero, mostramos un texto por defecto.
+      name: json['name'] ?? 'Sin descripcion',
+      videoUrl: videoUrl,
+      // "as num?" acepta tanto int como double antes de convertir a int.
+      likes: (json['likes'] as num?)?.toInt() ?? 0,
+      views: (json['views'] as num?)?.toInt() ?? 0,
     );
+  }
+
+  // recorre las calidades de video en orden de preferencia y devuelve
+  // la primera URL no vacia que encuentre. Devuelve null si ninguna
+  // calidad tiene una URL usable.
+  static String? _pickBestVideoUrl(dynamic videos) {
+    if (videos is! Map) {
+      return null;
+    }
+    const preferredQualities = ['medium', 'small', 'large', 'tiny'];
+    for (final quality in preferredQualities) {
+      final url = videos[quality]?['url'];
+      if (url is String && url.isNotEmpty) {
+        return url;
+      }
+    }
+    return null;
   }
 
   // MAPPER
@@ -37,7 +74,7 @@ class PixabayVideoModel {
   VideoPost toVideoPostEntity() => VideoPost(
     id: id,
     caption: name,
-    videoUrl: mediumVideoUrl,
+    videoUrl: videoUrl,
     likes: likes,
     views: views,
   );
