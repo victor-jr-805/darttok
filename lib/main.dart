@@ -1,4 +1,6 @@
+import 'package:darttok/infrastructure/datasources/local_video_datasource_impl.dart';
 import 'package:darttok/infrastructure/datasources/pixabay_datasource_impl.dart';
+import 'package:darttok/infrastructure/repositories/video_posts_repository_impl.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -18,15 +20,16 @@ class MyApp extends StatelessWidget {
 // TEMPORAL: esto se borra cuando conectemos todo con Provider en el Módulo 9.
 Future<void> main() async {
   const apiKey = String.fromEnvironment('PIXABAY_API_KEY');
-  final datasource = PixabayDatasourceImpl(dio: Dio(), apiKey: apiKey);
 
-  try {
-    final videos = await datasource.getPopularVideos();
-    debugPrint(
-      '✅ Se cargaron ${videos.length} videos. Primero: ${videos.first.caption}',
-    );
-  } catch (e) {
-    debugPrint('❌ Error: $e');
-  }
+  final repositoty = VideoPostsRepositoryImpl(
+    remoteDatasource: PixabayDatasourceImpl(dio: Dio(), apiKey: apiKey),
+    localDatasource: LocalVideoDatasourceImpl(),
+  );
+
+  final videos = await repositoty.getPopularVideos();
+  debugPrint(
+    '✅ Repository entregó ${videos.length} videos. Primero: ${videos.first.caption}',
+  );
+
   runApp(const MyApp());
 }
