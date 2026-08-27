@@ -1,6 +1,7 @@
 // presentation/screens/for_you/for_you_screen.dart
 
 import 'package:darttok/presentation/providers/for_you_provider.dart';
+import 'package:darttok/presentation/widgets/shared/video_scrollable_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -30,7 +31,10 @@ class ForYouScreen extends StatelessWidget {
     }
 
     // TEMPORAL: se reemplaza por VideoScrollableView en el modulo 11.
-    return const Placeholder();
+    return VideoScrollableView(
+      videos: provider.videos,
+      onNearEnd: provider.loadNextPage,
+    );
   }
 }
 
