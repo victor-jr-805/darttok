@@ -22,10 +22,14 @@ class ForYouProvider extends ChangeNotifier {
   // hacer scroll, evita pedir dos veces la misma) se agrega en
   // el Modulo 11. Por ahora, solo carga una vez.
   Future<void> loadNextPage() async {
+    // Marcamos el inicio de una carga (ya sea la primera vez o un
+    // reintento) y avisamos a la UI de inmediato para mostrar el spinner.
+    initialLoading = true;
+    hasError = false;
+    notifyListeners();
+
     try {
-      final newVideos = await repository.getPopularVideos();
-      videos = newVideos;
-      hasError = false;
+      videos = await repository.getPopularVideos();
     } catch (e) {
       hasError = true;
     } finally {

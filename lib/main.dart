@@ -5,6 +5,7 @@ import 'package:darttok/infrastructure/datasources/local_video_datasource_impl.d
 import 'package:darttok/infrastructure/datasources/pixabay_datasource_impl.dart';
 import 'package:darttok/infrastructure/repositories/video_posts_repository_impl.dart';
 import 'package:darttok/presentation/providers/for_you_provider.dart';
+import 'package:darttok/presentation/screens/for_you/for_you_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -38,42 +39,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme().theme(),
         //TEMPORAL: se reemplaza por ForYouScreen en el Modulo 10.
-        home: const _ProviderPreviewScreen(),
-      ),
-    );
-  }
-}
-
-// Widget temporal, exclusivo de este modulo: se borra en el Modulo 10.
-class _ProviderPreviewScreen extends StatelessWidget {
-  const _ProviderPreviewScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    // LLAMANDO AL PROVIDER
-    final forYouProvider = context.watch<ForYouProvider>();
-
-    if (forYouProvider.initialLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      );
-    }
-
-    if (forYouProvider.hasError) {
-      return const Scaffold(
-        body: Center(child: Text('Ocurrio un error al cargar los videos')),
-      );
-    }
-    return Scaffold(
-      body: ListView.builder(
-        itemCount: forYouProvider.videos.length,
-        itemBuilder: (context, index) {
-          final video = forYouProvider.videos[index];
-          return ListTile(
-            title: Text(video.caption),
-            subtitle: Text('❤️ ${video.likes}  👁️ ${video.views}'),
-          );
-        },
+        home: const ForYouScreen(),
       ),
     );
   }
