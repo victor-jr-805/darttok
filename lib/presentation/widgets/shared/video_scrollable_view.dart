@@ -1,6 +1,7 @@
 // presentation/widgets/shared/video_scrollable_view.dart
 
 import 'package:darttok/domain/entities/video_post.dart';
+import 'package:darttok/presentation/widgets/shared/video_buttons.dart';
 import 'package:darttok/presentation/widgets/video/fullscreen_player.dart';
 import 'package:flutter/material.dart';
 
@@ -48,10 +49,19 @@ class _VideoScrollableViewState extends State<VideoScrollableView> {
       itemBuilder: (context, index) {
         final video = widget.videos[index];
 
-        return FullscreenPlayer(
-          videoUrl: video.videoUrl,
-          caption: video.caption,
-          isCurrentVideo: index == _currentPage,
+        return Stack(
+          children: [
+            FullscreenPlayer(
+              videoUrl: video.videoUrl,
+              caption: video.caption,
+              isCurrentVideo: index == _currentPage,
+            ),
+            Positioned(
+              bottom: 50,
+              right: 20,
+              child: VideoButtons(video: video),
+            ),
+          ],
         );
       },
     );

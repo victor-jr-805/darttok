@@ -93,19 +93,33 @@ class _FullscreenPlayerState extends State<FullscreenPlayer> {
 
         return GestureDetector(
           onTap: _togglePlayPause,
-          child: AspectRatio(
-            aspectRatio: _controller.value.aspectRatio,
-            child: Stack(
-              children: [
-                VideoPlayer(_controller),
-                VideoGradient(stops: [0.8, 1.0]),
-                Positioned(
-                  bottom: 70,
-                  left: 30,
-                  child: _VideoCaption(caption: widget.caption),
+          // StackFit.expand: este Stack SIEMPRE llena todo el espacio
+          // que le den, sin importar si el padre le dio constraints
+          // sueltas (como ahora, dentro de VideoScrollableView) o
+          // ajustadas. Esto elimina el problema de raíz.
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // En vez de forzar el tamaño del contenedor a la
+              // proporción del video (lo que dejaba franjas negras),
+              // le damos al video su tamaño nativo y dejamos que
+              // FittedBox lo escale para CUBRIR toda la pantalla,
+              // recortando el sobrante.
+              FittedBox(
+                fit: BoxFit.cover,
+                child: SizedBox(
+                  width: _controller.value.size.width,
+                  height: _controller.value.size.height,
+                  child: VideoPlayer(_controller),
                 ),
-              ],
-            ),
+              ),
+              VideoGradient(stops: [0.8, 1.0]),
+              Positioned(
+                bottom: 70,
+                left: 30,
+                child: _VideoCaption(caption: widget.caption),
+              ),
+            ],
           ),
         );
       },
