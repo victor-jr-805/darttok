@@ -8,9 +8,21 @@ import 'package:darttok/presentation/providers/for_you_provider.dart';
 import 'package:darttok/presentation/screens/for_you/for_you_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:fvp/fvp.dart' as fvp;
 import 'package:provider/provider.dart';
 
-void main() => runApp(const MyApp());
+void main() {
+  // Registra la implementación de fvp SOLO para Linux y Windows.
+  // Android, iOS y Web siguen usando las implementaciones oficiales de
+  // video_player sin ningún cambio — fvp filtra internamente en qué
+  // plataforma actuar, así que es seguro llamarlo siempre.
+  fvp.registerWith(
+    options: {
+      'platforms': ['windows', 'linux'],
+    },
+  );
+  runApp(const MyApp());
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -38,7 +50,6 @@ class MyApp extends StatelessWidget {
         title: 'DartTok',
         debugShowCheckedModeBanner: false,
         theme: AppTheme().theme(),
-        //TEMPORAL: se reemplaza por ForYouScreen en el Modulo 10.
         home: const ForYouScreen(),
       ),
     );
