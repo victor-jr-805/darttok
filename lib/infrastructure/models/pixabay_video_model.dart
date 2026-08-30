@@ -44,7 +44,7 @@ class PixabayVideoModel {
       id: id,
       // "name " es solo texto de presentacion: si falta, no descartamos
       // el video entero, mostramos un texto por defecto.
-      name: json['name'] ?? 'Sin descripcion',
+      name: json['name'] ?? 'Sin descripción',
       videoUrl: videoUrl,
       // "as num?" acepta tanto int como double antes de convertir a int.
       likes: (json['likes'] as num?)?.toInt() ?? 0,
