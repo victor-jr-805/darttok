@@ -102,7 +102,3 @@ flutter test
 ## 👤 Autor
 
 **Victor** — [@victor-jr-805](https://github.com/victor-jr-805)
-
-## 📄 Licencia
-
-_Pendiente de elegir — ver sección de sugerencias más abajo en la conversación._
