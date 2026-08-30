@@ -1,0 +1,121 @@
+# .github/workflows/release.yml
+#
+# Corre SOLO cuando se sube un tag "vX.Y.Z". Compila las 4 plataformas
+# principales, las publica como assets de un GitHub Release, y
+# despliega la versión web a GitHub Pages. Además compila iOS sin
+# firmar, solo para demostrar que el proyecto es realmente
+# multiplataforma (sin distribución real, eso requiere una cuenta de
+# Apple Developer de pago).
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.2"
+          channel: "stable"
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  build-android:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.2"
+          channel: "stable"
+      - run: flutter pub get
+      - name: Compilar APK
+        run: flutter build apk --release --dart-define=PIXABAY_API_KEY=${{ secrets.PIXABAY_API_KEY }}
+      - name: Publicar en el Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: build/app/outputs/flutter-apk/app-release.apk
+
+  build-web:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.2"
+          channel: "stable"
+      - run: flutter pub get
+      - name: Compilar Web
+        run: flutter build web --release --base-href /darttok/ --dart-define=PIXABAY_API_KEY=${{ secrets.PIXABAY_API_KEY }}
+      - name: Publicar en GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+          publish_branch: gh-pages
+
+  build-linux:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.2"
+          channel: "stable"
+      - name: Instalar dependencias del sistema para el build de escritorio
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+      - run: flutter pub get
+      - name: Compilar Linux
+        run: flutter build linux --release --dart-define=PIXABAY_API_KEY=${{ secrets.PIXABAY_API_KEY }}
+      - name: Empaquetar
+        run: |
+          cd build/linux/x64/release/bundle
+          tar -czf ../../../../../darttok-linux.tar.gz .
+      - name: Publicar en el Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: darttok-linux.tar.gz
+
+  build-windows:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.2"
+          channel: "stable"
+      - run: flutter pub get
+      - name: Compilar Windows
+        run: flutter build windows --release --dart-define=PIXABAY_API_KEY=${{ secrets.PIXABAY_API_KEY }}
+      - name: Empaquetar
+        run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath darttok-windows.zip
+      - name: Publicar en el Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: darttok-windows.zip
+
+  build-ios-demo:
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.2"
+          channel: "stable"
+      - run: flutter pub get
+      - name: Compilar iOS sin firmar (solo para demostrar compatibilidad)
+        run: flutter build ios --release --no-codesign --dart-define=PIXABAY_API_KEY=${{ secrets.PIXABAY_API_KEY }}
